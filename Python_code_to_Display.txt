@@ -1,0 +1,30 @@
+Create a python program to integrate with Hive and get the required analysis from the Map-reduce result:
+
+Install matplotlib:
+
+ sudo yum install python-matplotlib
+
+import commands
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import numpy as np
+import matplotlib.pyplot as plt
+import csv
+
+names = []
+frequency = []
+ 
+with open('/home/cloudera/Desktop/PROJECT_FBI/output1.csv', 'rU') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        names.append(row["crime_type"])
+        frequency.append(int(row["arrest_count"]))
+
+#names = ['Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp']
+y_pos = np.arange(len(names))
+ 
+plt.bar(y_pos, frequency, align='center', alpha=0.5)
+plt.xticks( y_pos,names, rotation='vertical')
+plt.ylabel('Crime Count')
+plt.title('crime happened based on location')
+ 
+plt.show()

@@ -1,0 +1,3 @@
+Map reduce program to read the input from HDFS and write the results back to hdfs:
+
+hadoop jar FBI_MAPREDUCE.jar training.FBI_Processing

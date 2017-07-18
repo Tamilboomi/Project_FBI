@@ -1,0 +1,41 @@
+Then we will use hive to access the hbase table and create hive equeries which will create map-reduce 
+on top of the database.
+
+create database FBI_CRIME_DB;
+
+use FBI_CRIME_DB;
+
+CREATE EXTERNAL TABLE FBI_CRIME_TB(
+ID INT,
+Case_Number STRING,
+Date STRING,
+Block STRING,
+IUCR STRING,
+Primary_Type STRING,
+Description STRING,
+Location_Description STRING,
+Arrest STRING,
+Domestic STRING,
+Beat STRING,
+District STRING,
+Ward STRING,
+Community_Area STRING,
+FBI_CODE STRING,
+X_Coordinate STRING,
+Y_Coordinate STRING,
+Year INT,
+Updated_On STRING,
+Latitude STRING,
+Longitude STRING,
+Location STRING
+)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping"=":key,CD:Case_Number,CD:Date,CD:Block,CD:IUCR,CD:Primary_Type,CD:Description,CD:Location_Description,CD:Arrest,CD:Domestic,CD:Beat,CD:District,CD:Ward,CD:Community_Area,CD:FBI_CODE,CD:X_Coordinate,CD:Y_Coordinate,CD:Year,CD:Updated_On,CD:Latitude,CD:Longitude,CD:Location")
+TBLPROPERTIES("hbase.table.name"="H_FBI_CRIME","hbase.mapred.output.outputtable"="FBI_CRIME_TB");
+
+
+Step 4:
+hive to analyse and find the question's analysis: 
+
+CREATE TABLE result_tb  row format delimited FIELDS TERMINATED BY '\t'
+AS select primary_type as CRIME_TYPE,COUNT(IF(arrest="TRUE",1,0)) as ARREST_COUNT from fbi_crime_tb group by primary_type;

@@ -1,0 +1,13 @@
+Loading the table HBASE:
+
+Plan : We can use Sqoop to load the data from RDBMS to HBASE!
+
+Table Design in HBASE:
+
+Login to HBASE
+
+hbase shell
+
+create 'H_FBI_CRIME','CD'
+
+sqoop import --connect jdbc:mysql://localhost/FBI_DB --table FBI_CRIME  --hbase-table H_FBI_CRIME --column-family cd --hbase-row-key ID --m 1 --username root -P

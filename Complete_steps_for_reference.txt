@@ -1,0 +1,155 @@
+Step 1:
+
+Preparing the DB: MYSQL
+
+Create mysql db :
+create database FBI_DB;
+
+Creating Table :
+CREATE TABLE FBI_CRIME (
+ID INT,
+Case_Number VARCHAR(100),
+Date VARCHAR(100),
+Block VARCHAR(100),
+IUCR VARCHAR(100),
+Primary_Type VARCHAR(100),
+Description VARCHAR(500),
+Location_Description VARCHAR(256),
+Arrest VARCHAR(20),
+Domestic VARCHAR(20),
+Beat VARCHAR(20),
+District VARCHAR(20),
+Ward VARCHAR(20),
+Community_Area VARCHAR(20),
+FBI_Code VARCHAR(20),
+X_Coordinate VARCHAR(20),
+Y_Coordinate VARCHAR(20),
+Year INT,
+Updated_On VARCHAR(20),
+Latitude VARCHAR(20),
+Longitude VARCHAR(20),
+Location VARCHAR(20));
+
+Loading the data into the table:
+
+LOAD DATA INFILE "/home/cloudera/Desktop/PROJECT_FBI/input_crime.csv"
+INTO TABLE FBI_DB.FBI_CRIME
+COLUMNS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+ESCAPED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES;
+
+Step 2:
+Loading the table HBASE:
+
+Plan : We can use Sqoop to load the data from RDBMS to HBASE!
+
+Table Design in HBASE:
+
+Login to HBASE
+
+hbase shell
+
+create 'H_FBI_CRIME','CD'
+
+sqoop import --connect jdbc:mysql://localhost/FBI_DB --table FBI_CRIME  --hbase-table H_FBI_CRIME --column-family cd --hbase-row-key ID --m 1 --username root -P
+
+Step 3: 
+Then we will use hive to access the hbase table and create hive equeries which will create map-reduce 
+on top of the database.
+
+create database FBI_CRIME_DB;
+
+use FBI_CRIME_DB;
+
+CREATE EXTERNAL TABLE FBI_CRIME_TB(
+ID INT,
+Case_Number STRING,
+Date STRING,
+Block STRING,
+IUCR STRING,
+Primary_Type STRING,
+Description STRING,
+Location_Description STRING,
+Arrest STRING,
+Domestic STRING,
+Beat STRING,
+District STRING,
+Ward STRING,
+Community_Area STRING,
+FBI_CODE STRING,
+X_Coordinate STRING,
+Y_Coordinate STRING,
+Year INT,
+Updated_On STRING,
+Latitude STRING,
+Longitude STRING,
+Location STRING
+)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping"=":key,CD:Case_Number,CD:Date,CD:Block,CD:IUCR,CD:Primary_Type,CD:Description,CD:Location_Description,CD:Arrest,CD:Domestic,CD:Beat,CD:District,CD:Ward,CD:Community_Area,CD:FBI_CODE,CD:X_Coordinate,CD:Y_Coordinate,CD:Year,CD:Updated_On,CD:Latitude,CD:Longitude,CD:Location")
+TBLPROPERTIES("hbase.table.name"="H_FBI_CRIME","hbase.mapred.output.outputtable"="FBI_CRIME_TB");
+
+
+Step 4:
+hive to analyse and find the question's analysis: 
+
+CREATE TABLE result_tb  row format delimited FIELDS TERMINATED BY '\t'
+AS select primary_type as CRIME_TYPE,COUNT(IF(arrest="TRUE",1,0)) as ARREST_COUNT from fbi_crime_tb group by primary_type;
+
+Step 5:
+
+Map reduce program to read the input from HDFS and write the results back to hdfs:
+
+hadoop jar FBI_MAPREDUCE.jar training.FBI_Processing
+
+Step 6:
+
+Preparing the output for python plotting:
+
+hadoop fs -get /user/cloudera/output/part-* /home/cloudera/PROJECT_FBI/output.txt
+
+cat /home/cloudera/PROJECT_FBI/output.txt | sed 's/[\t]/,/g'  > /home/cloudera/PROJECT_FBI/output.csv
+
+Step 7:
+Create a python program to integrate with Hive and get the required analysis from the Map-reduce result:
+
+Install matplotlib:
+
+ sudo yum install python-matplotlib
+
+import commands
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import numpy as np
+import matplotlib.pyplot as plt
+import csv
+
+names = []
+frequency = []
+ 
+with open('/home/cloudera/Desktop/PROJECT_FBI/output1.csv', 'rU') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        names.append(row["crime_type"])
+        frequency.append(int(row["arrest_count"]))
+
+#names = ['Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp']
+y_pos = np.arange(len(names))
+ 
+plt.bar(y_pos, frequency, align='center', alpha=0.5)
+plt.xticks( y_pos,names, rotation='vertical')
+plt.ylabel('Crime Count')
+plt.title('crime happened based on location')
+ 
+plt.show()
+=====================================================================
+
+
+
+
+
+
+
+
+				

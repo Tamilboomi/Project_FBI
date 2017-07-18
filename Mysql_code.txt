@@ -1,0 +1,39 @@
+Preparing the DB: MYSQL
+
+Create mysql db :
+create database FBI_DB;
+
+Creating Table :
+CREATE TABLE FBI_CRIME (
+ID INT,
+Case_Number VARCHAR(100),
+Date VARCHAR(100),
+Block VARCHAR(100),
+IUCR VARCHAR(100),
+Primary_Type VARCHAR(100),
+Description VARCHAR(500),
+Location_Description VARCHAR(256),
+Arrest VARCHAR(20),
+Domestic VARCHAR(20),
+Beat VARCHAR(20),
+District VARCHAR(20),
+Ward VARCHAR(20),
+Community_Area VARCHAR(20),
+FBI_Code VARCHAR(20),
+X_Coordinate VARCHAR(20),
+Y_Coordinate VARCHAR(20),
+Year INT,
+Updated_On VARCHAR(20),
+Latitude VARCHAR(20),
+Longitude VARCHAR(20),
+Location VARCHAR(20));
+
+Loading the data into the table:
+
+LOAD DATA INFILE "/home/cloudera/Desktop/PROJECT_FBI/input_crime.csv"
+INTO TABLE FBI_DB.FBI_CRIME
+COLUMNS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+ESCAPED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES;
